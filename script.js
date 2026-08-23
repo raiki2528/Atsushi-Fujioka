@@ -49,7 +49,7 @@ document.querySelector("[data-site-footer]")?.replaceWith(
       <footer class="site-footer">
         <div class="container">
           <div class="footer-grid">
-            <div><p class="footer-name">ATSUSHI<br>FUJIOKA</p><p class="footer-tagline">教育、福祉、国際協力、地域づくり。人と人のあいだに学びと活躍の場をひらく。</p></div>
+            <div><p class="footer-name">ATSUSHI FUJIOKA</p><p class="footer-tagline">教育、福祉、国際協力、地域づくり。人と人のあいだに学びと活躍の場をひらく。</p></div>
             <div class="footer-links">
               <a href="profile.html">Profile</a><a href="story.html">Story</a>
               <a href="philippines.html">Philippines</a><a href="education.html">Education</a>
@@ -97,6 +97,59 @@ if ("IntersectionObserver" in window) {
   document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
 } else {
   document.querySelectorAll(".reveal").forEach((element) => element.classList.add("visible"));
+}
+
+const careerMap = document.querySelector("[data-career-map]");
+if (careerMap) {
+  const stage = careerMap.querySelector(".career-map-stage");
+  const svg = careerMap.querySelector(".career-map-lines");
+  const nodes = [...careerMap.querySelectorAll("[data-map-node]")];
+  const centerNode = careerMap.querySelector(".map-node-center");
+  const title = careerMap.querySelector("[data-map-title]");
+  const meta = careerMap.querySelector("[data-map-meta]");
+  const detail = careerMap.querySelector("[data-map-detail]");
+  const detailLink = careerMap.querySelector("[data-map-link]");
+
+  const selectNode = (node) => {
+    nodes.forEach((item) => item.setAttribute("aria-pressed", String(item === node)));
+    title.textContent = node.dataset.label;
+    meta.textContent = node.dataset.meta;
+    detail.textContent = node.dataset.detail;
+    detailLink.href = node.dataset.href;
+    detailLink.textContent = `${node.dataset.link} →`;
+  };
+
+  nodes.forEach((node) => node.addEventListener("click", () => selectNode(node)));
+
+  const drawCareerLines = () => {
+    svg.querySelectorAll("path").forEach((path) => path.remove());
+    if (matchMedia("(max-width: 560px)").matches) return;
+
+    const stageBox = stage.getBoundingClientRect();
+    const centerBox = centerNode.getBoundingClientRect();
+    const centerX = centerBox.left + centerBox.width / 2 - stageBox.left;
+    const centerY = centerBox.top + centerBox.height / 2 - stageBox.top;
+    svg.setAttribute("viewBox", `0 0 ${stageBox.width} ${stageBox.height}`);
+
+    nodes.filter((node) => node !== centerNode).forEach((node) => {
+      const nodeBox = node.getBoundingClientRect();
+      const x = nodeBox.left + nodeBox.width / 2 - stageBox.left;
+      const y = nodeBox.top + nodeBox.height / 2 - stageBox.top;
+      const controlX = centerX + (x - centerX) * .48;
+      const controlY = centerY + (y - centerY) * .2;
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", `M ${centerX} ${centerY} Q ${controlX} ${controlY} ${x} ${y}`);
+      path.setAttribute("vector-effect", "non-scaling-stroke");
+      svg.append(path);
+    });
+  };
+
+  requestAnimationFrame(drawCareerLines);
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(drawCareerLines).observe(stage);
+  } else {
+    addEventListener("resize", drawCareerLines);
+  }
 }
 
 document.querySelectorAll("[data-year]").forEach((element) => {
